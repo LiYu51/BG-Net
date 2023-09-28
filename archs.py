@@ -8,7 +8,6 @@ from torchvision.transforms import Resize
 from gradconv import gradconvnet
 from BiFusion import BiFusion_block
 
-
 class VReLU(nn.Module):
 
     def __init__(self, c1, k=5):  # ch_in, kernel
