@@ -6,7 +6,6 @@ import torch.nn.functional as F
 def gradconv(op_type):
     if op_type == 'cv':
         return F.conv2d
-
     
     elif op_type == 'gd':
         def func(x, weights, bias=None, stride=1, padding=0, dilation=1, groups=1):
