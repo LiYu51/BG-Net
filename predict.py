@@ -2,7 +2,6 @@ import argparse
 import math
 import os
 from glob import glob
-
 import cv2
 import numpy as np
 import torch.backends.cudnn as cudnn
