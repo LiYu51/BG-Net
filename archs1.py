@@ -8,7 +8,6 @@ from torchvision.transforms import Resize
 from gradconv import gradconvnet
 from BiFusion import BiFusion_block
 
-
 class VGGBlock(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels):
         super().__init__()
