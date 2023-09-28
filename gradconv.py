@@ -108,35 +108,68 @@ def gradconv(op_type):
             buffer = buffer.view(shape[0], shape[1], 5, 5)
             y = F.conv2d(x, buffer, bias, stride=stride, padding=padding, dilation=dilation, groups=groups)
             return y
-
+ 
         return func
+    elif op_type == 'bam':
+        def __init__(self, in_channels):
+            super(BAM, self).__init__()
+            self.in_channels = in_channels
+            self.max_pool = nn.AdaptiveMaxPool2d(1)
+            self.fc = nn.Linear(in_channels, 1)
+        
+        def forward(self, x):
+            x = torch.randn(batch_size, in_channels, feature_size, feature_size)
+            weights = torch.randn(in_channels, in_channels, 3, 3)
+            dg_model = dg()
+            Gf = dg_model.func(x, weights)
+            pooled = self.max_pool(Gf)
+            att_map = 1 / (1 + torch.exp(-pooled))
+            att_feature = x * att_map.view(-1, self.in_channels, 1, 1)
+            return att_feature, att_map
+    
+        def loss(self, att_map, target):
+            loss_fn = nn.BCELoss()
+            loss = loss_fn(att_map.squeeze(), target.float())
+            
+            return att_map
+ 
+        return func       
+        
     else:
         print('impossible to be here unless you force that')
         return None
 
-class BAM(nn.Module):
-    def __init__(self, in_channels):
-        super(BAM, self).__init__()
-        self.in_channels = in_channels
-        self.max_pool = nn.AdaptiveMaxPool2d(1)
-        self.fc = nn.Linear(in_channels, 1)
-        
-    def forward(self, Gf, Xf):
+class dg(nn.Module):
+    def func(x, weights, bias=None, stride=1, padding=0, dilation=1, groups=1):
+        assert dilation in [1, 2], 'dilation for ad_conv should be in 1 or 2'
+        assert weights.size(2) == 3 and weights.size(3) == 3, 'kernel size for ad_conv should be 3x3'
+        assert padding == dilation, 'padding for ad_conv set wrong'
 
-        pooled = self.max_pool(Gf)
-     
-        att_map = 1 / (1 + torch.exp(-pooled))
-        
-        att_feature = Xf * att_map.view(-1, self.in_channels, 1, 1)
-        
-        return att_feature, att_map
-    
-    def loss(self, att_map, target):
-        loss_fn = nn.BCELoss()
-        loss = loss_fn(att_map.squeeze(), target.float())
-        
-        return loss
+        list_x = []
+        for i in range(weights.shape[1]):
+            list_x.append(torch.tensor([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]], device='cuda:0'))
 
+        list_x = torch.stack(list_x, 0)
+
+        list_y = []
+        for i in range(weights.shape[1]):
+            list_y.append(torch.tensor([[-1, -1, -1], [0, 0, 0], [1, 1, 1]], device='cuda:0'))
+
+        list_y = torch.stack(list_y, 0)
+        weight_x = torch.mul(weights, list_x)
+        weight_y = torch.mul(weights, list_y)
+
+        input_x = F.conv2d(x, weight_x, bias=bias, stride=stride, padding=padding, dilation=dilation, groups=groups)
+        input_y = F.conv2d(x, weight_y, bias=bias, stride=stride, padding=padding, dilation=dilation, groups=groups)
+
+        input_x = torch.mul(input_x, input_x)
+        input_y = torch.mul(input_y, input_y)
+
+        result = torch.add(input_x, input_y)
+        Gf = result.sqrt()
+
+        return Gf
+       
 
 class Conv2d(nn.Module):
     def __init__(self, gradconv, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1,
@@ -174,7 +207,24 @@ class Conv2d(nn.Module):
 
 
 nets = {
-    'gradconv': {
+'gradconv': {
+        'layer0': 'gd',
+        'layer1': 'bam',
+        'layer2': 'cygd',
+        'layer3': 'bam',
+        'layer4': 'gd',
+        'layer5': 'bam',
+        'layer6': 'cygd',
+        'layer7': 'bam',
+        'layer8': 'gd',
+        'layer9': 'bam',
+        'layer10': 'cygd',
+        'layer11': 'bam',
+        'layer12': 'gd',
+        'layer13': 'bam',
+    },
+    
+    'gradconv1': {
         'layer0': 'gd',
         'layer1': 'gd',
         'layer2': 'gd',
