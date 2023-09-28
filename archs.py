@@ -9,10 +9,7 @@ from gradconv import gradconvnet
 from BiFusion import BiFusion_block
 
 
-class FReLU(nn.Module):
-    """
-    FReLU https://arxiv.org/abs/2007.11824
-    """
+class VReLU(nn.Module):
 
     def __init__(self, c1, k=5):  # ch_in, kernel
         super().__init__()
@@ -31,7 +28,7 @@ class VGGBlock(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels):
         super().__init__()
         self.relu = nn.ReLU(inplace=False)
-        # self.relu = FReLU(middle_channels)
+        # self.relu = VReLU(middle_channels)
         # 卷积添加了 dilation=(2,)
         self.conv1 = nn.Conv2d(in_channels, middle_channels, 3, dilation=2, padding=2)
         self.bn1 = nn.BatchNorm2d(middle_channels)
