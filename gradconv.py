@@ -114,6 +114,29 @@ def gradconv(op_type):
         print('impossible to be here unless you force that')
         return None
 
+class BAM(nn.Module):
+    def __init__(self, in_channels):
+        super(BAM, self).__init__()
+        self.in_channels = in_channels
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        self.fc = nn.Linear(in_channels, 1)
+        
+    def forward(self, Gf, Xf):
+
+        pooled = self.max_pool(Gf)
+     
+        att_map = 1 / (1 + torch.exp(-pooled))
+        
+        att_feature = Xf * att_map.view(-1, self.in_channels, 1, 1)
+        
+        return att_feature, att_map
+    
+    def loss(self, att_map, target):
+        loss_fn = nn.BCELoss()
+        loss = loss_fn(att_map.squeeze(), target.float())
+        
+        return loss
+
 
 class Conv2d(nn.Module):
     def __init__(self, gradconv, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1,
