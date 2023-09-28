@@ -3,7 +3,6 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-
 def gradconv(op_type):
     if op_type == 'cv':
         return F.conv2d
