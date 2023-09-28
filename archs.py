@@ -27,8 +27,8 @@ class VReLU(nn.Module):
 class VGGBlock(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels):
         super().__init__()
-        self.relu = nn.ReLU(inplace=False)
-        # self.relu = VReLU(middle_channels)
+        # self.relu = nn.ReLU(inplace=False)
+        self.relu = VReLU(middle_channels)
         # 卷积添加了 dilation=(2,)
         self.conv1 = nn.Conv2d(in_channels, middle_channels, 3, dilation=2, padding=2)
         self.bn1 = nn.BatchNorm2d(middle_channels)
