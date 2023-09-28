@@ -404,7 +404,6 @@ class GradConvNet(nn.Module):
         e2 = self.conv_reduces[1](x_fuses[1])
         e2 = F.interpolate(e2, (H, W), mode="bilinear", align_corners=False)
 
-        # 没做全连接的特征图
         outputs = [e1, e2]
         outputs = torch.cat(outputs, dim=1)
 
