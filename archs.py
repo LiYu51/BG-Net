@@ -163,10 +163,10 @@ class NestedUNet(nn.Module):
 
         self.conv0_4 = VGGBlock(nb_filter[0] * 4 + nb_filter[1], nb_filter[0], nb_filter[0])
 
-        self.fusion1 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
-        self.fusion2 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
-        self.fusion3 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
-        self.fusion4 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
+        self.fusion1 = Fusion_block(32, 32, 2, 32, 32, 0.1)
+        self.fusion2 = Fusion_block(32, 32, 2, 32, 32, 0.1)
+        self.fusion3 = Fusion_block(32, 32, 2, 32, 32, 0.1)
+        self.fusion4 = Fusion_block(32, 32, 2, 32, 32, 0.1)
 
         if self.deep_supervision:
             self.final1 = nn.Conv2d(nb_filter[0], num_classes, kernel_size=1)
