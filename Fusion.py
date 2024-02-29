@@ -13,9 +13,9 @@ class ChannelPool(nn.Module):
         return torch.cat((torch.max(x, 1)[0].unsqueeze(1), torch.mean(x, 1).unsqueeze(1)), dim=1)
 
 
-class BiFusion_block(nn.Module):
+class Fusion_block(nn.Module):
     def __init__(self, ch_1, ch_2, r_2, ch_int, ch_out, drop_rate=0.):
-        super(BiFusion_block, self).__init__()
+        super(Fusion_block, self).__init__()
 
         # channel attention for F_g, use SE Block
         self.fc1 = nn.Conv2d(ch_2, ch_2 // r_2, kernel_size=1)
