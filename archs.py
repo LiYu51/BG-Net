@@ -4,7 +4,6 @@ from torch import nn
 __all__ = ['UNet', 'NestedUNet']
 
 from torchvision.transforms import Resize
-
 from gradconv import gradconvnet
 from Fusion import Fusion_block
 
