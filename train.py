@@ -356,7 +356,9 @@ def validate(config, val_loader, model, criterion):
                 sp = sp1
 
             #loss = iou#+bce +ssim.item# bce + iou #+ ssim.item()
-            loss = bce# + iou + ssim.item()
+             gc_branch_output,unet_output,f = model.NestedUNet(input)
+            #loss = bce# + iou + ssim.item()
+             loss = mixed_loss(gc_branch_output, unet_output, output, target)
             avg_meters['loss'].update(loss, input.size(0))
 
             avg_meters['bce'].update(bce, input.size(0))
