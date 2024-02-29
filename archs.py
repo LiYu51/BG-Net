@@ -6,7 +6,7 @@ __all__ = ['UNet', 'NestedUNet']
 from torchvision.transforms import Resize
 
 from gradconv import gradconvnet
-from BiFusion import BiFusion_block
+from Fusion import Fusion_block
 
 class VReLU(nn.Module):
 
@@ -246,4 +246,4 @@ class NestedUNet(nn.Module):
             # else:
             #     output = x0_4
             # print(output.shape)
-            return output, [x0_1, x0_2, x0_3, x0_4]
+            return  [x0_1, x0_2, x0_3, x0_4],img_feature, output
