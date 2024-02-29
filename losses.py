@@ -9,7 +9,6 @@ except ImportError:
 
 __all__ = ['BCEDiceLoss', 'LovaszHingeLoss']
 
-
 class BCEDiceLoss(nn.Module):
     def __init__(self):
         super().__init__()
