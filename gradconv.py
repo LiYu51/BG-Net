@@ -125,12 +125,10 @@ def gradconv(op_type):
             x_with_attention = x * f
             return x_with_attention
 
-
         return func
     else:
         print('impossible to be here unless you force that')
         return None
-
 
 class Conv2d(nn.Module):
     def __init__(self, gradconv, in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1,
