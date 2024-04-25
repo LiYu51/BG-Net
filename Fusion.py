@@ -7,7 +7,6 @@ import torch.nn.functional as F
 import numpy as np
 import math
 
-
 class ChannelPool(nn.Module):
     def forward(self, x):
         return torch.cat((torch.max(x, 1)[0].unsqueeze(1), torch.mean(x, 1).unsqueeze(1)), dim=1)
@@ -21,11 +20,9 @@ class Fusion_block(nn.Module):
         self.fc2 = nn.Conv2d(ch_2 // r_2, ch_2, kernel_size=1)
         self.sigmoid = nn.Sigmoid()
 
-
         self.compress = ChannelPool()
         self.spatial = Conv(2, 1, 7, bn=True, relu=False, bias=False)
-
-
+        
         self.W_g = Conv(ch_1, ch_int, 1, bn=True, relu=False)
         self.W_x = Conv(ch_2, ch_int, 1, bn=True, relu=False)
         self.W = Conv(ch_int, ch_int, 3, bn=True, relu=True)
@@ -45,12 +42,10 @@ class Fusion_block(nn.Module):
         W_x = self.W_x(x)
         bp = self.W(W_g * W_x)
 
-
         g_in = g
         g = self.compress(g)
         g = self.spatial(g)
         g = self.sigmoid(g) * g_in
-
 
         x_in = x
         x = x.mean((2, 3), keepdim=True)
@@ -60,13 +55,10 @@ class Fusion_block(nn.Module):
         x = self.sigmoid(x) * x_in
         fuse = self.residual(torch.cat([g, x, bp], 1))
 
-
         if self.drop_rate > 0:
             return self.dropout(fuse)
         else:
             return fuse,gc_branch_output,unet_output
-
-
 
 
 def init_weights(m):
