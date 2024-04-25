@@ -11,7 +11,7 @@ from gradconv import gradconvnet
 
 import torch.nn.functional as F
 
-from BiFusion import BiFusion_block
+from Fusion import Fusion_block
 
 
 class FReLU(nn.Module):
@@ -21,23 +21,21 @@ class FReLU(nn.Module):
 
     def __init__(self, c1, k=5):  # ch_in, kernel
         super().__init__()
-        # 定义漏斗条件T(x)  参数池窗口（Parametric Pooling Window ）来创建空间依赖
-        # nn.Con2d(in_channels, out_channels, kernel_size, stride, padding, dilation=1, bias=True)
-        # 使用 深度可分离卷积 DepthWise Separable Conv + BN 实现T(x)
+
         self.conv = nn.Conv2d(c1, c1, k, 1, 2, groups=c1, bias=False)
         self.bn = nn.BatchNorm2d(c1)
 
     def forward(self, x):
-        # f(x)=max(x, T(x))
+
         return torch.max(x, self.bn(self.conv(x)))
 
 
 class VGGBlock(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels):
         super().__init__()
-        self.relu = nn.ReLU(inplace=False)
-        # self.relu = FReLU(middle_channels)
-        # 卷积添加了 dilation=(2,)
+
+        self.relu = FReLU(middle_channels)
+
         self.conv1 = nn.Conv2d(in_channels, middle_channels, 3, dilation=2, padding=2)
         self.bn1 = nn.BatchNorm2d(middle_channels)
         self.conv2 = nn.Conv2d(middle_channels, out_channels, 3, dilation=2, padding=2)
@@ -92,7 +90,6 @@ class UNet(nn.Module):
         x0_4 = self.conv0_4(torch.cat([x0_0, self.up(x1_3)], 1))
 
         output = x0_4
-        # output = self.final(x0_4)
         return output
 
 
@@ -117,19 +114,17 @@ def crop(inputs):
     img4 = torch.stack(img_4, 0)
 
     img = torch.stack((img1, img2, img3, img4), 0)
-
-    # print("imgsize:", img.size())
     return img
 
 
 def concat(input):
-    # print(input.size())
+
     img_1 = torch.cat((input[0], input[1]), 3)
-    # print("组合之后：", img_1.size())
+
     img_2 = torch.cat((input[2], input[3]), 3)
-    # print("组合之后：", img_2.size())
+
     img_res = torch.cat((img_1, img_2), 2)
-    # print("组合之后：", img_res.size())
+
     return img_res
 
 
@@ -139,13 +134,9 @@ class NestedUNet(nn.Module):
         super().__init__()
 
         nb_filter = [32, 64, 128, 256, 512]
-        # 图片分块
-        # 写个分块程序
+
         self.edge_net = gradconvnet('gradconv')
-        # self.unet_lu = UNet(num_classes, input_channels)
-        # self.unet_ru = UNet(num_classes, input_channels)
-        # self.unet_ld = UNet(num_classes, input_channels)
-        # self.unet_rd = UNet(num_classes, input_channels)
+
         self.resize = Resize((128, 192), 2)
         self.deep_supervision = deep_supervision
         self.grad_conv = nn.Conv2d(nb_filter[0], num_classes, kernel_size=1)
@@ -173,11 +164,11 @@ class NestedUNet(nn.Module):
 
         self.conv0_4 = VGGBlock(nb_filter[0] * 4 + nb_filter[1], nb_filter[0], nb_filter[0])
 
-        self.fusion1 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
-        self.fusion2 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
-        self.fusion3 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
-        self.fusion4 = BiFusion_block(32, 32, 2, 32, 32, 0.1)
-        #gc_branch_output, unet_output = BiFusion_block1()
+        self.fusion1 = Fusion_block(32, 32, 2, 32, 32, 0.1)
+        self.fusion2 = Fusion_block(32, 32, 2, 32, 32, 0.1)
+        self.fusion3 = Fusion_block(32, 32, 2, 32, 32, 0.1)
+        self.fusion4 = Fusion_block(32, 32, 2, 32, 32, 0.1)
+
         if self.deep_supervision:
             self.final1 = nn.Conv2d(nb_filter[0], num_classes, kernel_size=1)
             self.final2 = nn.Conv2d(nb_filter[0], num_classes, kernel_size=1)
@@ -188,13 +179,7 @@ class NestedUNet(nn.Module):
             self.final_fusion = nn.Conv2d(nb_filter[0], num_classes, kernel_size=1)
 
     def forward(self, input):
-
-        # 运行分块获得4个图片
-        # 使用4个图片运行unet
-        # 获得4个图片组合的特征 feature
-        # print(input.shape)
         imgs = crop(input)
-        # input = self.resize(input)
 
         img1 = self.edge_net(imgs[0])
         img2 = self.edge_net(imgs[1])
@@ -222,44 +207,26 @@ class NestedUNet(nn.Module):
         x1_3 = self.conv1_3(torch.cat([x1_0, x1_1, x1_2, self.up(x2_2)], 1))
         x0_4 = self.conv0_4(torch.cat([x0_0, x0_1, x0_2, x0_3, self.up(x1_3)], 1))
 
-        # 使用feature与x0_1,x0_2,x0_3,x0_4进行融合
-        # x_feture1 = torch.cat((img_feature, x0_1), 1)
-        # x_feture2 = torch.cat((img_feature, x0_2), 1)
-        # x_feture3 = torch.cat((img_feature, x0_3), 1)
-        # x_feture4 = torch.cat((img_feature, x0_4), 1)
         x_feture1 = self.fusion1(img_feature, x0_1)
         x_feture2 = self.fusion2(img_feature, x0_2)
         x_feture3 = self.fusion3(img_feature, x0_3)
         x_feture4 = self.fusion4(img_feature, x0_4)
 
-        # print(x_feture4.shape)
 
         if self.deep_supervision:
             output1 = self.final1(x_feture1)
-            # print("output1: ", output1.shape)
+
             output2 = self.final2(x_feture2)
-            # print("output2: ", output2.shape)
+
             output3 = self.final3(x_feture3)
-            # print("output3: ", output3.shape)
+
             output4 = self.final4(x_feture4)
-            # print("output4: ", output4.shape)
-            # print(output1.shape)
+
             return [output1, output2, output3, output4]
 
         else:
             output = self.final_fusion(x_feture4)
             unetput = self.final_unet(x0_4)
-            # if self.deep_supervision:
-            #     output1 = x0_1
-            #     output2 = x0_2
-            #     output3 = x0_3
-            #     output4 = x0_4
-            #     return [output1, output2, output3, output4]
-            # else:
-            #     output = x0_4
-            # print(output.shape)
-            # return output, [x0_1, x0_2, x0_3, x0_4]
-            # output = F.sigmoid(output)
+
             gradconv_out = self.grad_conv(img_feature)
             return output, unetput, gradconv_out
-            # return [x0_1, x0_2, x0_3, x0_4], img_feature, output
