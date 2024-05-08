@@ -180,10 +180,10 @@ def train(config, train_loader, model, criterion, optimizer, last_loss):
 
         n_ssim = 1 - ssim_loss(unet_sig, target)
 
-        #f_iou = losses.iou_loss(output, target)
-        f_iou = criterion(output, target)
+        f_iou = losses.iou_loss(output, target)
+        
         loss = gc_loss + n_ssim + f_iou
-        #loss = gc_loss + n_ssim
+        
 
         optimizer.zero_grad()
         loss.backward()
@@ -275,11 +275,11 @@ def validate(config, val_loader, model, criterion, last_loss):
 
             n_ssim = 1 - ssim_loss(unet_sig, target)
 
-            #f_iou = losses.iou_loss(output, target)
-            f_iou = criterion(output, target)
+            f_iou = losses.iou_loss(output, target)
+            
 
             loss = gc_loss + n_ssim + f_iou
-            #loss = gc_loss + n_ssim
+           
 
             avg_meters['loss'].update(loss.item(), input.size(0))
             avg_meters['gc_loss'].update(gc_loss.item(), input.size(0))
@@ -308,7 +308,7 @@ def validate(config, val_loader, model, criterion, last_loss):
 def main():
     config = vars(parse_args())
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("当前设备*9************************：", device)
+    
     if config['name'] is None:
         if config['deep_supervision']:
             config['name'] = '%s_%s_wDS' % (config['dataset'], config['arch'])
@@ -465,7 +465,7 @@ def main():
         log_cpu = {}
         for key, value in log.items():
             if isinstance(value, torch.Tensor):
-                log_cpu[key] = value.cpu().detach().numpy()  # 将张量移动到 CPU 并转换为 NumPy 数组
+                log_cpu[key] = value.cpu().detach().numpy()  
             else:
                 log_cpu[key] = value
 
