@@ -166,7 +166,7 @@ class Conv2d(nn.Module):
 
 
 nets = {
-    'gradconv': {
+    'gradconv0': {
          'layer0': 'gd',
         'layer1': 'bam',
         'layer2': 'cygd',
@@ -212,7 +212,7 @@ nets = {
         'layer6': 'cygd',
         'layer7': 'gd',
     },
-    'layer_4': {
+    'gradconv': {
         'layer0':  'cd',
         'layer1':  'ad',
         'layer2':  'rd',
@@ -222,16 +222,7 @@ nets = {
         'layer6':  'rd',
         'layer7':  'cv',
     },
-    'layer_5': {
-            'layer0':  'gd',
-            'layer1':  'cd',
-            'layer2':  'ad',
-            'layer3':  'rd',
-            'layer4':  'gd',
-            'layer5':  'cd',
-            'layer6':  'ad',
-            'layer7':  'rd',
-        }
+    
 }
 
 
