@@ -162,7 +162,6 @@ class Conv2d(nn.Module):
 
         return self.gradconv(input, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
 
-
 nets = {
     'gradconv': {
          'layer0': 'gd',
