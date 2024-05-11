@@ -13,7 +13,7 @@ def gradconv(op_type):
             assert dilation in [1, 2], 'dilation for ad_conv should be in 1 or 2'
             assert weights.size(2) == 3 and weights.size(3) == 3, 'kernel size for ad_conv should be 3x3'
             assert padding == dilation, 'padding for ad_conv set wrong'
-
+            smooth = 1e-6
             list_x = []
             for i in range(weights.shape[1]):
                 list_x.append(torch.tensor([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]], device='cuda:0'))
@@ -35,6 +35,8 @@ def gradconv(op_type):
             input_y = torch.mul(input_y, input_y)
 
             result = torch.add(input_x, input_y)
+            if torch.any(torch.isnan(result)):
+                result = torch.add(input_x, input_y)+smooth
             result = result.sqrt()
             # print(result.size)
 
@@ -48,7 +50,7 @@ def gradconv(op_type):
             assert dilation in [1, 2], 'dilation for ad_conv should be in 1 or 2'
             assert weights.size(2) == 3 and weights.size(3) == 3, 'kernel size for ad_conv should be 3x3'
             assert padding == dilation, 'padding for ad_conv set wrong'
-
+            smooth = 1e-6
             shape = weights.shape
             weights = weights.view(shape[0], shape[1], -1)
 
@@ -63,6 +65,8 @@ def gradconv(op_type):
             input_y = torch.mul(input_y, input_y)
 
             result = torch.add(input_x, input_y)
+            if torch.any(torch.isnan(result)):
+                result = torch.add(input_x, input_y)+smooth
             result = result.sqrt()
 
             return result
@@ -166,7 +170,7 @@ class Conv2d(nn.Module):
 
 
 nets = {
-    'gradconv0': {
+    'gradconv': {
          'layer0': 'gd',
         'layer1': 'bam',
         'layer2': 'cygd',
@@ -212,7 +216,7 @@ nets = {
         'layer6': 'cygd',
         'layer7': 'gd',
     },
-    'gradconv': {
+    'gradconv0': {
         'layer0':  'cd',
         'layer1':  'ad',
         'layer2':  'rd',
