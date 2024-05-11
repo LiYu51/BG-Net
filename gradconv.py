@@ -17,9 +17,7 @@ def gradconv(op_type):
             list_x = []
             for i in range(weights.shape[1]):
                 list_x.append(torch.tensor([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]], device='cuda:0'))
-
             list_x = torch.stack(list_x, 0)
-
             list_y = []
             for i in range(weights.shape[1]):
                 list_y.append(torch.tensor([[-1, -1, -1], [0, 0, 0], [1, 1, 1]], device='cuda:0'))
@@ -38,10 +36,8 @@ def gradconv(op_type):
             if torch.any(torch.isnan(weights)):
                 result = torch.add(input_x, input_y)+smooth
             result = result.sqrt()
-            # print(result.size)
 
             return result
-
 
         return func
 
