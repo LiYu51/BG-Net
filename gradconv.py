@@ -35,7 +35,7 @@ def gradconv(op_type):
             input_y = torch.mul(input_y, input_y)
 
             result = torch.add(input_x, input_y)
-            if torch.any(torch.isnan(result)):
+            if torch.any(torch.isnan(weights)):
                 result = torch.add(input_x, input_y)+smooth
             result = result.sqrt()
             # print(result.size)
@@ -65,7 +65,7 @@ def gradconv(op_type):
             input_y = torch.mul(input_y, input_y)
 
             result = torch.add(input_x, input_y)
-            if torch.any(torch.isnan(result)):
+            if torch.any(torch.isnan(weights)):
                 result = torch.add(input_x, input_y)+smooth
             result = result.sqrt()
 
