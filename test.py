@@ -27,7 +27,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--name', default='dsb2018_96_NestedUNet_woDS',
+    parser.add_argument('--name', default='BG-net',
                         help='model name')
 
     args = parser.parse_args()
@@ -37,7 +37,7 @@ def parse_args():
 
 def main():
     with open(
-            'E:/project/project/pytorch_nested_unet_master/pytorch_nested_unet_master/models/dsb2018_96_NestedUNet_woDS/config.yml',
+            'E:/config.yml',
             'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -64,7 +64,7 @@ def main():
     _, val_img_ids = train_test_split(img_ids, train_size=0.1, random_state=1)
 
     model.load_state_dict(torch.load(
-        'E:/project/project/pytorch_nested_unet_master/pytorch_nested_unet_master/models/dsb2018_96_NestedUNet_woDS/model.pth'))
+        'E:/model.pth'))
     model.eval()
 
     val_transform = Compose([
@@ -73,6 +73,8 @@ def main():
         transforms.Normalize(),
     ])
 
+
+    
     val_dataset = Dataset(
         img_ids=val_img_ids,
         img_dir=os.path.join('inputs', config['dataset'], 'images'),
